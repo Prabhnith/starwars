@@ -3,8 +3,6 @@ var router = express.Router();
 
 const swapi = require('swapi-node');
 
-
-/* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
@@ -27,74 +25,53 @@ router.get('/character/:name', function(req, res, next) {
 
 });
 
+charactersArray=[];
 
+function mysort(para) {
+	if(para == "height"){
+		   	charactersArray.sort(function(a,b){return (a.height-b.height);});
+		}
+		else if(para == "mass"){
+		   	charactersArray.sort(function(a,b){return (a.mass -b.mass); });
+		}
+		if(para == "name"){
+		   	charactersArray.sort(function(a,b){return a.name.localeCompare(b.name);});
+		}
+}
 
-router.get('/test', function(req, res, next) {
-		charactersArray=[];
-		// swapi.get('http://swapi.co/api/people/').then((result) => {
+router.get('/characters', function(req, res, next) {
+	if(charactersArray.length==0){
 		swapi.get('http://swapi.co/api/people/').then((result) => {
 		charactersArray=[...result.results];
-		    // console.log(result.count,result.results);
-		    // charactersArray = charactersArray.concat(result.results);
-		    res.render('characters', {data : charactersArray });
+		    charactersArray = charactersArray.concat(result.results);
 		    return result.nextPage();
 		}).then((result)=>{
-			console.log(result.count,result.results);
 		    charactersArray = charactersArray.concat(result.results);
-		    // res.render('characters', {data : charactersArray });
-		//     return result.nextPage();
-		// }).then((result)=>{
-		// 	console.log(result.count,result.results);
-		//     charactersArray = charactersArray.concat(result.results);
-		//     return result.nextPage();
-		// }).then((result)=>{
-		// 	console.log(result.count,result.results);
-		//     charactersArray = charactersArray.concat(result.results);
-		//     return result.nextPage();
-		// }).then((result)=>{
-			// console.log(result.count,result.results);
-		    // charactersArray = charactersArray.concat(result.results);
-		    // charactersArray.filter(Boolean);
-		    // charactersArray.filter(function(val) { return val !== null; }).join(", ");
-		    // console.log("character are:",charactersArray.length,charactersArray); 
-
-			// res.setHeader('Content-Type', 'application/json');
-			// console.log((result.results));
-			console.log(typeof(charactersArray));
-			// res.render('characters', {data : charactersArray });
-			// res.end();
-		    // res.send(JSON.stringify(result.results, null, 3));
-
+		    return result.nextPage();
+		}).then((result)=>{
+		    charactersArray = charactersArray.concat(result.results);
+		    return result.nextPage();
+		}).then((result)=>{
+		    charactersArray = charactersArray.concat(result.results);
+		    return result.nextPage();
+		}).then((result)=>{
+		    charactersArray = charactersArray.concat(result.results);
+		    charactersArray.filter(Boolean);
+		    charactersArray.filter(function(val) { return val !== null; }).join(", ");
+		    if(req.query.sort !="")
+		    	mysort(req.query.sort);
+		    res.render('characters', {data : charactersArray });
+			res.end();
 		}).catch((err) => {
 		    console.log(err);
 		});
-
-			// charactersArray.length=50;
-
-
-  // res.render('index', { title: 'mypage' });
+	}
+	else{
+		if(req.query.sort !=""){
+		    mysort(req.query.sort);
+			res.render('characters', {data : charactersArray });
+			res.end();
+		}
+	}
 });
-
-
-router.get('/characters', function(req, res, next) {
-	var charactersArray=[];
-	swapi.get('http://swapi.co/api/people/').then((result) => {
-	    // console.log(result.count,result.results);
-	    charactersArray = charactersArray.concat(result.results);
-	    // charactersArray.length=50;
-	    charactersArray.filter(Boolean);
-	    charactersArray.filter(function(val) { return val !== null; }).join(", ")
-
-	    console.log("character are:",charactersArray.length,charactersArray); 
-	    
-		res.setHeader('Content-Type', 'application/json');
-	    res.send(JSON.stringify({charactersArray}, null, 3));
-	    // return result.nextPage();
-	}).catch((err) => {
-	    console.log(err);
-	});
-
-  // res.render('index', { title: 'mypage' });
-});
-
 module.exports = router;
