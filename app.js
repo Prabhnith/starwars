@@ -5,11 +5,12 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var paginate = require('express-paginate');
-
+var jsonStream = require('express-jsonstream');
 
 var app = express();
+// var app = express.createServer(jsonStream());
 
-app.use(paginate.middleware(10, 50));
+// app.use(paginate.middleware(10, 50));
 
 var index = require('./routes/index');
 var users = require('./routes/users');

@@ -1,12 +1,14 @@
 var express = require('express');
 var router = express.Router();
-
+var async = require('async');
 const swapi = require('swapi-node');
-var paginate = require('express-paginate');
-var app = express();
 
-// keep this before all routes that will use pagination
-app.use(paginate.middleware(10, 50));
+var paginate = require('express-paginate');
+var jsonStream = require('express-jsonstream');
+
+// var app = express.createServer(jsonStream());
+
+// app.use(paginate.middleware(10, 50));
 
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
@@ -65,7 +67,6 @@ router.get('/characters', function(req, res, next) {
 		    if(req.query.sort !="")
 		    	mysort(req.query.sort);
 		    res.render('characters', {data : charactersArray });
-			// res.end();
 		}).catch((err) => {
 		    console.log(err);
 		});
@@ -74,40 +75,58 @@ router.get('/characters', function(req, res, next) {
 		if(req.query.sort !=""){
 		    mysort(req.query.sort);
 			res.render('characters', {data : charactersArray });
-			// res.end();
 		}
 	}
 });
 
+
+// function sendResidents(){
+// 	var planetName="";
+// 	var planetResidents ={};
+// 	var search="http://swapi.co/api/planets/1/";
+
+// 	swapi.get(search).then((planet) => {
+// 		planetName = planet.name;
+// 		return planet.getResidents();
+// 	}).then((residents) =>{
+// 		var residentNames=[];
+// 		for(r in residents){
+// 			residentNames = residentNames.concat(residents[r].name);
+// 		}
+// 		planetResidents[planetName] = residentNames ;
+// 		res.setHeader('Content-Type', 'application/json');
+// 		res.send(JSON.stringify(planetResidents),null,3);
+
+// 	}).catch((err) => {
+// 		res.render('error',{error:err});
+// 	});
+
+// }
+
 router.get('/planetresidents', function(req, res, next) {
 
-	var planetName="";
-	var planetResidents ={};
-	var search="http://swapi.co/api/planets/1/";
+		res.setHeader('Content-Type', 'application/json');
 
-	swapi.get(search).then((planet) => {
-		planetName = planet.name;
-		return planet.getResidents();
-	}).then((residents) =>{
+	( function sendResidents(i) {
+		var planetName="";
+		var planetResidents ={};
+	    
+	    swapi.get(`http://swapi.co/api/planets/${i}/`).then((planet) => {
+		    planetName = planet.name;
+			return planet.getResidents();
+		}).then((residents) =>{
+		
 		var residentNames=[];
 		for(r in residents){
 			residentNames = residentNames.concat(residents[r].name);
 		}
-		// console.log(residentNames);
 		planetResidents[planetName] = residentNames ;
-		console.log(planetName);
-		console.log(planetResidents);
-		// if(result.count ==0){
-			res.setHeader('Content-Type', 'application/json');
-			res.send(JSON.stringify(planetResidents),null,3);
-		// 	res.end()
-		// }
-		// else{
-		// res.render('character', { title: "Result for character name: " + character,data: result.results });
-		// }
-	}).catch((err) => {
-		res.render('error',{error:err});
-	});
+		res.write(JSON.stringify(planetResidents) +"\n\n");
+	    
+	    }).catch((err)=>{
+	    	console.log(err);
+	    }).then( () => i >= 60 || sendResidents(i+1) );
+	})(1);
 
 });
 
