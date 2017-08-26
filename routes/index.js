@@ -4,8 +4,12 @@ var async = require('async');
 
 const swapi = require('swapi-node');
 
+pageNumber = 1;
+currentArray = []
+charactersArray = [];
+
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'Express' });
+    res.render('index', { title: 'Star Wars' });
 });
 
 router.get('/character/:name', function(req, res, next) {
@@ -24,8 +28,6 @@ router.get('/character/:name', function(req, res, next) {
     });
 
 });
-
-charactersArray = [];
 
 function mysort(para, array) {
     if (para == "height") {
@@ -70,26 +72,23 @@ router.get('/characters', function(req, res, next) {
     }
 });
 
-pageNumber=1;
-currentArray=[]
 router.get('/pagecall/:direct', function(req, res, next) {
-		var page = req.params.direct;
-        if(page == "next"){
-        	pageNumber++;
-        }
-        else if(page=="prev" && pageNumber>1){
-        	pageNumber--;
-        }
-        swapi.get(`http://swapi.co/api/people/?page=${pageNumber}`).then((result) => {
-            currentArray = [...result.results];
-            currentArray.filter(Boolean);
-            currentArray.filter(function(val) { return val !== null; }).join(", ");
-            if (req.query.sort != "")
-                mysort(req.query.sort,currentArray);
-            res.render('characters', { data: currentArray ,pagination : 1});
-        }).catch((err) => {
-            console.log(err);
-        });
+    var page = req.params.direct;
+    if (page == "next") {
+        pageNumber++;
+    } else if (page == "prev" && pageNumber > 1) {
+        pageNumber--;
+    }
+    swapi.get(`http://swapi.co/api/people/?page=${pageNumber}`).then((result) => {
+        currentArray = [...result.results];
+        currentArray.filter(Boolean);
+        currentArray.filter(function(val) { return val !== null; }).join(", ");
+        if (req.query.sort != "")
+            mysort(req.query.sort, currentArray);
+        res.render('characters', { data: currentArray, pagination: 1 });
+    }).catch((err) => {
+        console.log(err);
+    });
 });
 
 router.get('/planetresidents', function(req, res, next) {
